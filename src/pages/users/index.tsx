@@ -5,6 +5,7 @@ import {
   Flex,
   Heading,
   Icon,
+  Spinner,
   Table,
   Tbody,
   Td,
@@ -14,26 +15,37 @@ import {
   Tr,
   useBreakpointValue,
 } from "@chakra-ui/react";
+import { useQuery } from 'react-query'
 import Link from "next/link";
+import { useEffect } from "react";
 import { RiAddLine, RiPencilLine } from "react-icons/ri";
 import Header from "../../components/Header";
 import Pagination from "../../components/Pagination";
 import { Sidebar } from "../../components/Sidebar";
+import { api } from "../../services/api";
+import { useUsers } from "../../services/hooks/useUsers";
 
 export default function UserList() {
+  const {data, isLoading, error , isFetching} = useUsers()
+
+
   const isWideVersion = useBreakpointValue({
     base: false,
     lg: true
   })
+
+
   return (
     <Box>
       <Header />
       <Flex w="100%" my="6" maxWidth="1480px" mx="auto" px="6">
         <Sidebar />
 
-        <Box flex="1" borderRadius="8px" bg="gray.800" p="8">
+        <Box flex="1" borderRadius="8px" bg="gray.800" p={["6","8"]}>
           <Flex mb="8" justify="space-between" align="center">
-            <Heading size="lg"> Usuários </Heading>
+            <Heading size="lg"> Usuários 
+            {!isLoading && isFetching && <Spinner size='sm' color="gray.500" ml='4'/>}
+            </Heading>
             <Link href='/users/create' passHref>
               <Button
                 as="a"
@@ -42,12 +54,22 @@ export default function UserList() {
                 colorScheme="pink"
                 leftIcon={<Icon as={RiAddLine} fontSize='20' />}
               >
-                Criar novo Usuário
+                {isWideVersion ? "Criar novo Usuário" : "Criar Usuario"}
               </Button>
             </Link>
 
           </Flex>
-          <Table colorScheme="whiteAlpha">
+          { isLoading ? (
+            <Flex justify='center' >
+              <Spinner/>
+            </Flex>
+          ): error ? (
+            <Flex justify='center'>
+              <Text>Falha a obter os dados do usuario</Text>
+            </Flex>
+          ): (
+            <>
+            <Table colorScheme="whiteAlpha">
             <Thead>
               <Tr>
                 <Th px="6" color="gray.300" width="8">
@@ -59,18 +81,19 @@ export default function UserList() {
               </Tr>
             </Thead>
             <Tbody>
-              <Tr>
+              {data.map(user=>(
+                <Tr>
                 <Td px={["4", "4", "6"]}>
                   <Checkbox colorScheme="pink" />
                 </Td>
 
                 <Td>
                   <Box>
-                    <Text fontWeight="bold">Diego Vieira</Text>
-                    <Text fontSize="sm">diego@gmail.com</Text>
+                    <Text fontWeight="bold">{user.name}</Text>
+                    <Text fontSize="sm">{user.email}</Text>
                   </Box>
                 </Td>
-                {isWideVersion && <Td>04 de Abril de 2022</Td>}
+                {isWideVersion && <Td>{user.created_at}</Td>}
                 <Td>
                   {isWideVersion && <Button
                     as="a"
@@ -80,14 +103,18 @@ export default function UserList() {
                     color='gray.900'
                     leftIcon={<Icon as={RiPencilLine} fontSize='16' color='gray.900' />}
                   >
-
+                    Editar
                   </Button>}
 
                 </Td>
               </Tr>
+              ))}
             </Tbody>
           </Table>
           <Pagination />
+
+            </>
+          )}
         </Box>
       </Flex>
     </Box>
