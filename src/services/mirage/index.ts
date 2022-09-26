@@ -29,7 +29,12 @@ export function makeServer() {
     routes() {
       this.namespace = "api";
       this.timing = 750;
-      this.get("/users");
+      this.get("/users", function(schema, request){
+        const {page = 1, per_page = 10} request.queryParams
+
+        
+
+      });
       this.post("/users");
       this.namespace = "";
       this.passthrough();
